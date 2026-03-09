@@ -328,8 +328,8 @@ if step_4:
     os.makedirs(f"{out_dir}4_Diamond_Databases", exist_ok=True)
 
     if step_4_1 and (not TEST_PROTOCOL or TEST_SAMPLES >= 2):
-        lg.info('Step 4.4 | Creating ResFinder Database')
-        os.makedirs(f"{out_dir}4_Diamond_Databases/4_4_ResFinder_DB", exist_ok=True)
+        lg.info('Step 4.1 | Creating ResFinder Database')
+        os.makedirs(f"{out_dir}4_Diamond_Databases/4_1_ResFinder_DB", exist_ok=True)
         
         # Verify input file exists (assuming it's already prepared)
         input_file = f"{db_dir}resfinder_db/1_reference_sequences_nuc.fasta"
@@ -337,10 +337,10 @@ if step_4:
             lg.error(f"Input file not found: {input_file}")
             exit()
         
-        if db_make('4_4_ResFinder_DB', input_file, 'Nucleotide'):
-            lg.info('Step 4.4 | Completed')
+        if db_make('4_1_ResFinder_DB', input_file, 'Nucleotide'):
+            lg.info('Step 4.1 | Completed')
         else:
-            lg.error('Step 4.4 | Failed')
+            lg.error('Step 4.1 | Failed')
 
     lg.info(f"{5*'#'} Step 4 | Completed {5*'#'}")
 
@@ -355,8 +355,8 @@ if step_5:
     db_dirs = [d for d in os.listdir(f"{out_dir}4_Diamond_Databases/") 
             if os.path.isdir(f"{out_dir}4_Diamond_Databases/{d}")]
 
-    # Only keep ResFinder (step 4.4)
-    db_dirs = [d for d in db_dirs if d == "4_4_ResFinder_DB"]
+    # Only keep ResFinder (step 4.1)
+    db_dirs = [d for d in db_dirs if d == "4_1_ResFinder_DB"]
     
     # Get list of input files (handles both compressed and uncompressed FASTQ)
     raw_files = sorted([f for f in os.listdir(f"{out_dir}2_Trimmed_Reads") 
@@ -452,8 +452,8 @@ if step_6:
     db_dirs = [d for d in os.listdir(f"{out_dir}5_Diamond_Results/") 
               if os.path.isdir(f"{out_dir}5_Diamond_Results/{d}")]
     
-    # Only keep ResFinder (step 4.4)
-    db_dirs = [d for d in db_dirs if d == "5_4_ResFinder_DB"]
+    # Only keep ResFinder (step 4.1)
+    db_dirs = [d for d in db_dirs if d == "5_1_ResFinder_DB"]
     
     for db in db_dirs:
         db_name = db[4:]  # Remove '5_1_' prefix to get database name
