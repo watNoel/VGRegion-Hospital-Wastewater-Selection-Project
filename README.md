@@ -11,11 +11,12 @@ To run the scripts for the statistical analysis of resistance rates in e.coli an
 | emmeans   | 2.0.1    | Estimated marginal means and contrasts          |
 | DHARMa    | 0.4.7    | Checking residuals and model fit          |
 
-For the script *ecoli_resistance_rates_models.R*, the input dataset is the *Merged Counts E. coli* sheet of the source data excel sheet in the submitted paper, also present in the /input folder under *merged_counts_ecoli.xlsx*:
-The expected outputs are found under output/
+For the script *ecoli_resistance_rates_models.R*, the input dataset is the *Merged Counts E. coli* sheet of the source data excel file in the submitted paper. The file is also present in the /inputs folder and named *merged_counts_ecoli.xlsx*:
+The expected outputs are found under outputs/ecoli_stats.xlsx
 
-To run the script *metagenomic_arg_models.R*, the input dataset is supplementary information excel sheet, named:
-And the expected outputs are found under output/
+To run the script *metagenomic_arg_models.R*, metadata for the samples are needed, and a file with the ARG counts in the different samples.
+These files are found under inputs/metadata.xlsx and inputs/
+And the expected outputs are found under output/metagenomics_stats.xlsx
 
 ## Metagenomic ARG Detection Pipeline
 
