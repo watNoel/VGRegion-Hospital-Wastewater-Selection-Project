@@ -11,6 +11,8 @@ To run the scripts for the statistical analysis of resistance rates in e.coli an
 | emmeans   | 2.0.1    | Estimated marginal means and contrasts          |
 | DHARMa    | 0.4.7    | Checking residuals and model fit          |
 
+The datasets used to produce the results in the paper from are provided in the /inputs folder. The time to run the scripts with these dataset on a normal desktop computer was under 2 minutes. 
+
 For the script *ecoli_resistance_rates_models.R*, the input dataset is the *Merged Counts E. coli* sheet of the source data excel file in the submitted paper. The file is also present in the /inputs folder and named *merged_counts_ecoli.xlsx*:
 The expected output files,, providing comprehensive statistical outputs from the modelling, are found under *outputs/ecoli_stats.xlsx*
 
@@ -19,9 +21,9 @@ These files are found under *inputs/metadata.xlsx* and *inputs/ResFinder_DB_coun
 The expected output files, providing comprehensive statistical outputs from the modelling, are found under *outputs/metagenomics_stats.xlsx*
 
 
-For the scripts to function, take care to update the paths to the different datasets in the scripts.
+For the scripts to function properly, download provided datasets and take update the paths to the different datasets in the scripts per your folder structure.
 The scripts assume there is a folder called output in the directory where you run the code. If it doesn't, create such a folder or change the output destination of the created xlsx files. \\
-NOTE: Prior to publication, all inputs and outputs have been provided as encrypted files and a passkey provided to reviewers. Upon publication, this encryption will be removed.
+NOTE: Prior to publication, all inputs and outputs have been provided as encrypted files and a passkey provided to reviewers. For testing the scripts during review, remove the encryption in order for R to be able to load the data. Upon publication, this encryption will be removed.
 
 
 ## Metagenomic ARG Detection Pipeline
