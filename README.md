@@ -219,13 +219,13 @@ This section describes the R scripts used for ARG counts, beta diversity, and ta
 | Package        | Version | Purpose                                           |
 |----------------|---------|-------------------------------------------------|
 | ggplot2        | 3.5.2   | Data visualization, stacked bar plots          |
-| dplyr          | x.x.x   | Data wrangling and transformation              |
-| readr          | x.x.x   | File import and TSV/CSV reading                |
-| tidyverse      | x.x.x   | Pipes and helper functions                      |
-| stringi        | x.x.x   | String cleaning and manipulation               |
-| RColorBrewer   | x.x.x   | Color palettes for plots                        |
-| showtext       | x.x.x   | Embedding fonts (Arial) in plots               |
-| svglite        | x.x.x   | SVG export of plots                             |
+| dplyr          | 1.2.0   | Data wrangling and transformation              |
+| readr          | 2.2.0   | File import and TSV/CSV reading                |
+| tidyverse      | 2.0.0   | Pipes and helper functions                      |
+| stringi        | 1.8.7   | String cleaning and manipulation               |
+| RColorBrewer   | 1.1-3   | Color palettes for plots                        |
+| showtext       | 0.9-7   | Embedding fonts (Arial) in plots               |
+| svglite        | 2.2.2   | SVG export of plots                             |
 
 **Purpose:** Load metadata and ResFinder ARG counts, clean gene/class names, normalize counts to CPM, aggregate top ARG classes per sample group, and generate stacked bar plots.
 
@@ -235,13 +235,11 @@ This section describes the R scripts used for ARG counts, beta diversity, and ta
 |----------------|---------|-------------------------------------------------|
 | vegan          | 2.7.1   | Bray–Curtis distance and diversity metrics     |
 | ggplot2        | 3.5.2   | PCoA visualization                              |
-| dplyr          | x.x.x   | Data manipulation                               |
-| tibble         | x.x.x   | Data frame handling                             |
-| pairwiseAdonis | x.x.x   | Pairwise PERMANOVA                              |
-| tidyverse      | x.x.x   | General data wrangling                          |
-| ggpubr         | x.x.x   | Plot annotation and formatting                  |
-| grid           | x.x.x   | Plot layout adjustments                         |
-| svglite        | x.x.x   | Export PCoA figures in SVG                      |
+| dplyr          | 1.2.0   | Data manipulation                               |
+| tibble         | 3.3.1   | Data frame handling                             |
+| tidyverse      | 2.0.0   | General data wrangling                          |
+| ggpubr         | 0.6.3   | Plot annotation and formatting                  |
+| svglite        | 2.2.2   | Export PCoA figures in SVG                      |
 
 **Purpose:** Compute Bray–Curtis distances, perform PCoA, PERMANOVA, beta-dispersion, pairwise tests, and generate PCoA plots with convex hulls representing sample groups.
 
@@ -249,10 +247,10 @@ This section describes the R scripts used for ARG counts, beta diversity, and ta
 
 | Package        | Version | Purpose                                           |
 |----------------|---------|-------------------------------------------------|
-| tidyverse      | x.x.x   | Data wrangling, pivoting, plotting             |
-| ggsci          | x.x.x   | Scientific color palettes                       |
-| randomcoloR    | x.x.x   | Generate distinct colors for taxa              |
-| scales         | x.x.x   | Axis formatting for plots                       |
+| tidyverse      | 2.0.0   | Data wrangling, pivoting, plotting             |
+| ggsci          | 5.0.0   | Scientific color palettes                       |
+| randomcoloR    | 1.1.0.1   | Generate distinct colors for taxa              |
+| scales         | 1.4.0   | Axis formatting for plots                       |
 
 **Purpose:** Load taxonomy and metadata, extract taxa at a specified level (e.g., phylum), compute relative abundance, select top N taxa per group, generate stacked bar plots with consistent color and factor ordering.
 
