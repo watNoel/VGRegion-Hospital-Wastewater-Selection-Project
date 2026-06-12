@@ -328,7 +328,7 @@ Each script generates plots and summary tables:
 
 ## Citation
 
-If you use this pipeline, or any other scripts in your research, please cite:
+If you use this pipeline, or any other scripts in your research, please cite: *Citation will be added once paper is published*
 
 <your paper or thesis>
 
