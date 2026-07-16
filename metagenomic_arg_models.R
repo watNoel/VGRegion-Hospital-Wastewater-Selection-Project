@@ -3,7 +3,8 @@
 # in municipal wastewater treatment plant influents vs hospitals and biofilms vs wastewaters
 
 # Separate analyses are performed for the data with and without the mölndal biofilm sample included
-# outputs include statistics used in the publication, s.a anova and estimated differences in arg carriages betweend waters/biofilms in hopsitals and municipal influent sites.
+# outputs include statistics used in the publication, such as anova and estimated differences 
+# in arg carriages between waters/biofilms in hospitals and municipal influent sites.
 
 
 {
@@ -20,11 +21,11 @@
 
 # modify paths to the data and file reading function needed! Examples are provided for csv,tsv and xlsx
 
-
 resfinder_counts<-readxl::read_xlsx("./input/ResFinder_DB_counts_by_group.xlsx")
 #read_tsv("./input/ResFinder_DB_counts_by_group.tsv")
 
 #read.csv("../../metagenomics/ResFinder_Counts_Final.csv",header = TRUE) 
+
 
 
 # Only use the arg counts, not distinguished by class.
@@ -76,9 +77,6 @@ resfinder_totals<-resfinder_counts |>  group_by(Sample_ID,Sample,Sample_Type,Sit
 
 
 
-#saveRDS(resfinder_totals,file = "resfinder_totals_16_02_2026.rds")
-
-
 
 
 # Getting an overview of the counts data by site type and water type
@@ -101,16 +99,14 @@ ggplot(resfinder_totals ,
 
 
 
-# For the modelling, we drop the effluent samples
+# For the modelling, we drop the effluent samples and do models with and without mölndal the outlying sample.
 
 table(resfinder_totals$Site_Type)
 
 resfinder_totals_no_effluent<-resfinder_totals |> filter(Site_Type!="Effluent")
 
 # the outlying mölndal biofilm sample
-
-mölndal<-resfinder_totals |> filter(Site=="Mölndal" & Sample_Type=="Biofilm") |> pull(Sample)
-
+mölndal<-resfinder_totals_no_effluent |> filter(Site=="Mölndal" & Sample_Type=="Biofilm") |> pull(Sample)
 no_mölndal<- resfinder_totals_no_effluent |> filter(Sample!=mölndal)
 
 
@@ -129,8 +125,6 @@ rm(municipal_biofilms,influents,effluents)
 #unpaired, comparing all to all is highly significant.
 
 
-
-
 # Modelling of arg counts -------------------------------------------------
 # Idea is to Model the Total Counts and use the million reads as offset, such that what
 #is effectively modelled are the ARG counts per million reads
@@ -140,11 +134,10 @@ rm(municipal_biofilms,influents,effluents)
 # negative binomial regression with random effect for the sites comes in handy.
 
 # 1: Fit one overall model for all site and sample types.
-# If the interaction term is significant in an anova, proceed to split into two models, one for each site type.
+# 2: Check the interaction term for significance, and also compare the resistance rates in biofilm vs water in the two different site types.
 
 
 nb_fitter<-function(df){
-  
   
   fit1<-glmmTMB(
     Total_Count ~ Sample_Type * Site_Type + (1|Site) + offset(logTotalMillions) ,
@@ -155,6 +148,7 @@ nb_fitter<-function(df){
     Total_Count ~ Sample_Type + Site_Type + (1|Site) + offset(logTotalMillions), 
     data = df,
     family = nbinom2)  
+  
   
   # For more complex random structure. Only use if it improved fit ( assess by AIC and DHARMA)
   fit2<-glmmTMB(
@@ -174,6 +168,17 @@ nb_fitter<-function(df){
 }
 
 nb_fit<-nb_fitter(df=resfinder_totals_no_effluent)
+DHARMa::simulateResiduals(nb_fit$fit1) |> plot()
+DHARMa::simulateResiduals(nb_fit$fit2) |> plot()
+# Same analysis with mölndal biofilm sample dropped -------------------------------------------
+nb_fit_no_mölndal<-nb_fitter(df=no_mölndal)
+DHARMa::simulateResiduals(nb_fit_no_mölndal$fit1) |> plot()
+DHARMa::simulateResiduals(nb_fit_no_mölndal$fit2) |> plot()
+
+
+# fit1 and fit2 are quite similar, the KS test is significant for fit1.
+# Refitting without mölndal outlier removes the deviation and also the single point which deviated on the right side plot.
+# This indicates its not really a problem with the model specification, just this outlier is inherently hard to model.
 
 get_aic_and_anova<-function(four_fits){
 print(AIC(four_fits$fit1,four_fits$fit1_no_interaction,
@@ -185,126 +190,75 @@ print(anova(four_fits$fit2_no_interaction,four_fits$fit2))
 }
 
 get_aic_and_anova(nb_fit)
+get_aic_and_anova(nb_fit_no_mölndal)
+# Again, we see the fit1 and fit2 be almost identical in AIC, an highly significant interaction term even when mölndal outlier is included.
+# Since the fits are so similar, and AIC is lower for the simpler model, we can proceed with the simpler random effect structure.
 
-# The anova tells of a highly significant interaction term, and also that the simpler random effect structure was better. Proceed with that.
-
-
-nb_model_by_site_type<-function(df,site_type, which_fit=1){
-  indat<-df |> filter(Site_Type==site_type)
+get_contrasts_from_fit<-function(fit,reference_site_type="Influent"){
   
-  fit1<-glmmTMB(
-    Total_Count ~ Sample_Type + (1|Site) + offset(logTotalMillions) ,
-    data = indat,
-    family = nbinom2)  
+  emms_link <- emmeans(fit,
+                         ~  Site_Type* Sample_Type,
+                         type = "link",
+                         offset = 0)
   
-  # Addition of deeper random structure, if needed
-  fit2<-glmmTMB(
-    Total_Count ~ Sample_Type + (1|Site/Sample) + offset(logTotalMillions) ,
-    data = indat,
-    family = nbinom2)  
+  # Resistant fraction = AB / No Anti (with multiplicity adjustment if need be, here we are only performing one comparison therefore set adjust=none)
+  contrasts_link_by_site_type <- contrast(emms_link , method = "trt.vs.ctrl", 
+                                          ref="Water",
+                                          by = c("Site_Type"), 
+                                          adjust = "none",
+                                          type="link",
+                                          infer=TRUE)
   
-  #AIC(fit1,fit2)
-  
-  if(which_fit==2){
-    fit<-fit2
-  }  else {
-    fit<-fit1
-  }
-  
-  emm <- emmeans(fit, ~ Sample_Type,
-                 type = "link",
-                 offset = 0)
-  
-  difference_over_sample_type<-contrast(emm, 
-                                        method = "trt.vs.ctrl",
-                                        ref="Water",
-                                        adjust="none",
-                                        type="link",
-                                        infer=TRUE)
+  contrasts_link_by_site_type
+  # to compare hospital vs reference (influent)
+  contrasts_link_by_sample_type <- contrast(emms_link ,
+                                            method = "trt.vs.ctrl",
+                                            ref=reference_site_type,
+                                            by = c("Sample_Type"),
+                                            adjust = "none",
+                                            type="link", infer=TRUE)
   
   return(list(fit=fit,
-              fit1=fit1,
-              fit2=fit2,
-              Site_Type=site_type,
-              key_stats=difference_over_sample_type |> data.frame() |> mutate(Site_Type=site_type),
-              diffs_df=emm |> data.frame() |> mutate(Site_Type=site_type),
-              emm=emm,
-              preds=predict(fit,type="response") # predictions on the Total Count scale
-              )
-  )
+              emms_df=emms_link |> data.frame()  |> mutate(resistance_rate=exp(emmean),
+                                                                                            lower=exp(asymp.LCL),
+                                                                                            upper=exp(asymp.UCL)),
+              key_stats_by_site_type=contrasts_link_by_site_type |> data.frame() |>
+                mutate(p.adjusted=p.adjust(p.value,method="bonferroni")) |> 
+                mutate(ratio=exp(estimate),
+                       lower=exp(asymp.LCL),
+                       upper=exp(asymp.UCL)),
+              key_stats_by_sample_type=contrasts_link_by_sample_type |> data.frame() |>
+                mutate(p.adjusted=p.adjust(p.value,method="bonferroni")) |> 
+                mutate(ratio=exp(estimate),
+                       lower=exp(asymp.LCL),
+                       upper=exp(asymp.UCL))))
 }
 
 
-site_types<-list("Hospital","Influent")
 
-by_st<-purrr::map(site_types,\(x){nb_model_by_site_type(df=resfinder_totals_no_effluent,site_type = x)})
-
-#Hospital
-sims1<-by_st[[1]]$fit |> simulateResiduals() # SLightly sigmoidal residuals-No severe deviations
-plot(sims1)
-
-# Influent
-sims2<-by_st[[2]]$fit |> simulateResiduals() # No severe deviations
-plot(sims2)
+# Getting the stats to present in the paper
+key_stats_full<-get_contrasts_from_fit(fit=nb_fit$fit1)
+key_stats_no_mölndal<-get_contrasts_from_fit(fit=nb_fit_no_mölndal$fit1)
 
 
-key_stats_by_site_type<-purrr::map_df(by_st,pluck("key_stats"))
-key_stats_by_site_type
+# We have significant differences between biofilm and water, regardless of whether the outlier is included in the model or not.
 
-emms_by_site_type<-purrr::map_df(by_st,pluck("diffs_df"))
-emms_by_site_type
-
-ggplot(emms_by_site_type , aes(y=emmean,x=Site_Type,color=Sample_Type))+
-  geom_errorbar(aes(ymax=asymp.UCL,ymin=asymp.LCL), position=position_dodge(width=0.95))+
-  geom_point(position=position_dodge(width=0.95))
-
-# The overlap is large for the hospital, reflecting the large-ish pvalue of the biofilm effect
-
-ggplot(resfinder_totals_no_effluent, aes(y = Total_Count/Total_Millions,x=Site,color=Sample_Type))+ geom_point() +
-  theme(axis.text.x = element_text(angle=90))+ facet_wrap(~Site_Type)
-
-
-
-
-# Same analysis with mölndal biofilm sample dropped -------------------------------------------
-
-nb_fit_no_mölndal<-nb_fitter(df=no_mölndal)
-get_aic_and_anova(nb_fit_no_mölndal)
-simulateResiduals(nb_fit_no_mölndal$fit1) |> plot() # no severe deviations
-
-by_st_no_mölndal<-purrr::map(site_types,\(x){nb_model_by_site_type(df=no_mölndal,site_type = x)})
-
-key_stats_by_site_type_no_mölndal<-purrr::map_df(by_st_no_mölndal,pluck("key_stats"))
-key_stats_by_site_type_no_mölndal
-
-emms_by_site_type_no_mölndal<-purrr::map_df(by_st_no_mölndal,pluck("diffs_df"))
-emms_by_site_type_no_mölndal
-
-# Illustration of modelled estimated marginal means
-ggplot(emms_by_site_type_no_mölndal , aes(y=emmean,x=Site_Type,color=Sample_Type))+
-  geom_errorbar(aes(ymax=asymp.UCL,ymin=asymp.LCL), position=position_dodge(width=0.95))+
-  geom_point(position=position_dodge(width=0.95))
-
-# When mölndal is dropped, the p-value drops considerably for the hospital side and the interaction term in the overall model.
-
-
-
-# Writing the results to file.
-
-# Anova results
+# Save these to an excel file
 anova_res<-anova(nb_fit$fit1_no_interaction,nb_fit$fit1) 
-
 anova_res_no_mölndal<-anova(nb_fit_no_mölndal$fit1_no_interaction,nb_fit_no_mölndal$fit1) 
-anova_res_no_mölndal
 
 
 writexl::write_xlsx(list(anova_for_interaction=anova_res,
-                         metagenomics_stats=key_stats_by_site_type,
-                         metagenomics_means=emms_by_site_type,
-                         anova_for_interaction_no_mölndal=anova_res_no_mölndal,
-                         metagenomics_stats_no_mölndal=key_stats_by_site_type_no_mölndal,
-                         metagenomics_means_no_mölndal=emms_by_site_type_no_mölndal,
-                         metagenomics_data=resfinder_totals), path = "./output/metagenomics_stats.xlsx")
+                         metagenomics_stats=key_stats_full$key_stats_by_site_type,
+                         metagenomics_means=key_stats_full$emms_df,
+                         anova_for_inter_no_mölndal=anova_res_no_mölndal,
+                         metagenomics_stats_no_mölndal=key_stats_no_mölndal$key_stats_by_site_type,
+                         metagenomics_means_no_mölndal=key_stats_no_mölndal$emms_df,
+                         metagenomics_data=resfinder_totals), 
+                    path = "./output/metagenomics_stats.xlsx")
 
 
 
+
+
+#
