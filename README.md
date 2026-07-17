@@ -14,7 +14,7 @@ To run the scripts for the statistical analysis of resistance rates in e.coli an
 The datasets used to produce the results in the paper are provided in the /inputs folder. The time to run the scripts with these datasets on a "normal" desktop computer was under 2 minutes. 
 
 For the script *ecoli_resistance_rates_models.R*, the input dataset is the *Merged Counts E. coli* sheet of the source data excel file in the submitted paper. The file is also present in the /inputs folder and named *merged_counts_ecoli.xlsx*:
-The expected output files,, providing comprehensive statistical outputs from the modelling of *E. coli* resistance rates, are found under *outputs/ecoli_stats.xlsx*.
+The expected output files, providing comprehensive statistical outputs from the modelling of *E. coli* resistance rates, are found under *outputs/ecoli_stats.xlsx*.
 
 For the script *metagenomic_arg_models.R*, metadata for the samples are needed, and a file with the ARG counts in the different samples.
 These files are found under *inputs/metadata.xlsx* and *inputs/ResFinder_DB_counts_by_group.xlsx* as well as in the corresponding sheets in the source data excel file in the submitted paper.
